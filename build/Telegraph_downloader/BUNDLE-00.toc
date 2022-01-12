@@ -1,0 +1,4 @@
+([('Telegraph_downloader',
+   '/Users/xzajyjs/Library/Mobile '
+   'Documents/com~apple~CloudDocs/xzajyjs/Code/Python/Project/Telegraph_Downloader/dist/Telegraph_downloader',
+   'EXECUTABLE')],)
