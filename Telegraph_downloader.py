@@ -44,7 +44,7 @@ Path栏仅支持输入单行路径，建议输入绝对路径;
         self.run = Button(self, text="Run!",width=6, bg="gray", command=self.thread)
         self.run.grid(row=9, column=1)
     def thread(self):
-        t1 = Thread(target=self.get_info)
+        t1 = Thread(target=self.get_info, daemon=True)
         t1.start()
 
     def get_info(self):
