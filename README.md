@@ -5,9 +5,9 @@ Tkinter写的一个小工具，采用多线程技术用来批量下载`telegra.p
 国内网络环境复杂,而`telegra.ph`又是需要魔法才能访问的,因此Mac平台需要开全局代理。但windows平台的所谓全局代理时没有用的，必须使用类似`natapp`等的流量转发工具才能正常运行。
 
 ---
-## Install
+## 使用方式
 ```
 pip install -r requirements.txt
+python Telegraph_downloader.py
 ```
-- 因为涉及selenium,因此还需要正确安装chromedriver（此软件目前只能使用Chrome）  
 > 由于Windows平台缩放、分辨率导致的窗口不一致问题，v0.5版本后将不再更新打包版本。  

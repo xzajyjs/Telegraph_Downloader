@@ -4,10 +4,11 @@ import requests
 from tkinter import *
 from tkinter import messagebox
 from threading import Thread
-from selenium.webdriver import Chrome
-from selenium.webdriver.common.by import By
 from concurrent.futures import ThreadPoolExecutor
+from bs4 import BeautifulSoup
 
+BASE_URL = "https://telegra.ph"
+VERSION = "v0.6"
 
 class Application(Frame):
     def __init__(self, master):
@@ -25,14 +26,14 @@ class Application(Frame):
         self.log_label.grid(row=9, column=0)
         self.log = Text(self, width=90, height=18, relief=SOLID, borderwidth=1)
         self.log.grid(row=10, column=0, columnspan=2)
-        notice = '''Telegraph下载器 v0.5 alpha
+        notice = f'''Telegraph下载器 {VERSION}
 Author: xzajyjs
 e-mail: xuziang16@gmail.com
 个人主页: https://xzajyjs.cn
 
 使用说明:
 Url栏支持同时输入多个url, url之间请用换行符隔开;
-Path栏仅支持输入单行路径，建议输入绝对路径;
+Path栏仅支持输入单行路径, 建议输入绝对路径;
 输入的路径必须已经存在\n\n\n
 '''
         self.log.insert(0.0, chars=notice)
@@ -63,25 +64,19 @@ Path栏仅支持输入单行路径，建议输入绝对路径;
                 pic_list = []
                 self.log.insert(END, chars=f"开始处理 {url}\n")
                 self.log.see(END)
-
-                web = Chrome()
-                web.get(url)
-                title = web.title   # windows要切割 
+                resp = requests.get(url, timeout=10)
+                soup = BeautifulSoup(resp.text, 'html.parser')
+                h1_tag = soup.find('h1')
+                if h1_tag:
+                    title = h1_tag.get_text(strip=True)
                 print(f"title={title}")
                 os.mkdir(path=path+title)
                 self.new_path = path+title+"/"
-                
-
                 self.log.insert(END, chars=f"图片会保存到 {self.new_path}\n")
                 self.log.see(END)
-
-                figure_list = web.find_elements(By.XPATH, '//*[@id="_tl_editor"]/div[1]/figure')
-
-                for figure in figure_list:
-                    src = figure.find_element(By.TAG_NAME, "img").get_attribute("src")
-                    pic_list.append(src)
-
-                web.close()
+                img_tags = soup.find_all('img')
+                pic_list = [BASE_URL + img['src'] for img in img_tags]
+                print(pic_list)
                 with ThreadPoolExecutor(20) as t:
                     for each_pic_url in pic_list:
                         file_name = each_pic_url.rsplit("/",1)[1]
@@ -91,19 +86,20 @@ Path栏仅支持输入单行路径，建议输入绝对路径;
             messagebox.showinfo(title='完毕', message='所有图片下载完毕')
             self.log.insert(END, chars=f'共处理{len(url_list)}条数据，耗时{str(end_time-start_time)[:6]}s')
 
-        except:
+        except Exception as e:
+            print(e)
             messagebox.showerror(title='Error', message='发生意外错误')
 
     def download(self, each_pic_url, save_path, pic_list):
         with open(save_path,"wb") as f:
             f.write(requests.get(each_pic_url).content)
-        self.log.insert(END, chars=f"{(self.new_path.rsplit('/',2)[1])[:15]}... => 进度:({pic_list.index(each_pic_url)+1}/{len(pic_list)})\n")
+        self.log.insert(END, chars=f"{(self.new_path.rsplit('/',2)[1])[:30]}... => 进度:({pic_list.index(each_pic_url)+1}/{len(pic_list)})\n")
         self.log.see(END)
         
 
 if __name__=="__main__":
     root = Tk()
     root.geometry('722x648+450+100')
-    root.title('Telegraph图册下载器v0.5 --by xzajyjs')
+    root.title(f'Telegraph图册下载器{VERSION} --by xzajyjs')
     Application(master=root)
     root.mainloop()
